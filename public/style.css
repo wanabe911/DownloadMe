@@ -1,0 +1,80 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: #0a0a0a;
+    color: #e0e0e0;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+}
+
+.container {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 560px;
+    padding: 30px 20px;
+}
+
+header { text-align: center; margin-bottom: 30px; }
+header h1 { font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -1px; }
+header h1 span { color: #e74c3c; }
+header p { color: #555; font-size: 0.85rem; margin-top: 6px; }
+
+.tabs { display: flex; gap: 0; margin-bottom: 20px; border-radius: 12px; overflow: hidden; }
+.tab {
+    flex: 1; padding: 12px; background: #111; border: 1px solid #1a1a1a;
+    color: #666; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; font-family: 'Inter', sans-serif;
+}
+.tab:first-child { border-radius: 12px 0 0 12px; }
+.tab:last-child { border-radius: 0 12px 12px 0; }
+.tab.active { background: #c0392b; color: #fff; border-color: #c0392b; }
+
+.input-wrapper { display: flex; gap: 8px; background: #111; border: 1px solid #222; border-radius: 14px; padding: 5px; }
+.input-wrapper:focus-within { border-color: #c0392b; }
+.input-wrapper input {
+    flex: 1; padding: 14px 18px; background: transparent; border: none;
+    color: #fff; font-size: 15px; font-family: 'Inter', sans-serif; outline: none;
+}
+.input-wrapper input::placeholder { color: #444; }
+.input-wrapper button {
+    padding: 14px 24px; background: #c0392b; border: none; border-radius: 10px;
+    color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; white-space: nowrap;
+}
+.input-wrapper button:hover { background: #e74c3c; }
+
+.hint { color: #444; font-size: 0.75rem; margin-top: 10px; padding-left: 8px; }
+
+.loading { text-align: center; padding: 30px; }
+.spinner { width: 36px; height: 36px; border: 3px solid #1a1a1a; border-top-color: #c0392b; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading p { color: #555; }
+
+.result { background: #111; border: 1px solid #1a1a1a; border-radius: 16px; padding: 24px; margin-top: 20px; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.result h2 { color: #fff; margin-bottom: 16px; font-size: 1.1rem; }
+.result-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1a1a1a; }
+.result-row:last-child { border-bottom: none; }
+.result-label { color: #555; font-size: 0.85rem; }
+.result-value { color: #e0e0e0; font-weight: 600; text-align: right; word-break: break-all; }
+.result-value a { color: #c0392b; text-decoration: none; }
+.result-value a:hover { text-decoration: underline; }
+.error { color: #c0392b; text-align: center; }
+
+.hidden { display: none; }
+
+@media (max-width: 500px) {
+    .container { padding: 15px; }
+    header h1 { font-size: 1.8rem; }
+    .input-wrapper { flex-direction: column; }
+    .input-wrapper button { width: 100%; text-align: center; }
+}
