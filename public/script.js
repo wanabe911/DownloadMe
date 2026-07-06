@@ -1,10 +1,19 @@
 window.addEventListener("load", () => {
-    try {
-        const audio = document.getElementById("slashSound");
-        if (audio) {
-            setTimeout(() => { audio.volume = 0.6; audio.play().catch(() => {}); }, 1100);
-        }
-    } catch {}
+    const audio = document.getElementById("slashSound");
+    if (audio) {
+        audio.muted = true;
+        audio.play().then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+            audio.muted = false;
+        }).catch(() => {});
+        
+        setTimeout(() => {
+            audio.currentTime = 0;
+            audio.volume = 0.7;
+            audio.play().catch(() => {});
+        }, 1100);
+    }
 
     setTimeout(() => {
         document.getElementById("mainApp").style.display = "block";
