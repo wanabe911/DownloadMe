@@ -32,7 +32,12 @@ async function downloadTikTok(url) {
     const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
     const { data } = await axios.get(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
     if (data.code === 0 && data.data) {
-      return { platform: "tiktok", title: data.data.title, author: data.data.author?.nickname, video_url: data.data.play || data.data.wmplay, no_watermark: data.data.hdplay || data.data.play, thumbnail: data.data.cover, music: data.data.music_info?.title };
+      return {
+        platform: "tiktok", title: data.data.title, author: data.data.author?.nickname,
+        video_url: data.data.play || data.data.wmplay, no_watermark: data.data.hdplay || data.data.play,
+        thumbnail: data.data.cover, music: data.data.music_info?.title,
+        music_url: data.data.music || data.data.music_info?.play
+      };
     }
     return null;
   } catch { return null; }
@@ -50,7 +55,11 @@ async function downloadFacebook(url) {
     const apiUrl = `https://api.fdown.net/api.php?url=${encodeURIComponent(url)}`;
     const { data } = await axios.get(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
     if (data.success && data.data) {
-      return { platform: "facebook", title: data.data.title || "Facebook Video", video_url: data.data.hd || data.data.sd, thumbnail: data.data.thumbnail };
+      return {
+        platform: "facebook", title: data.data.title || "Facebook Video",
+        video_url: data.data.hd || data.data.sd, thumbnail: data.data.thumbnail,
+        music_url: data.data.audio
+      };
     }
     return null;
   } catch { return null; }
@@ -87,7 +96,11 @@ async function downloadReddit(url) {
     const media = post.media?.reddit_video || post.preview?.reddit_video_preview;
     const videoUrl = post.url_overridden_by_dest || post.url;
     if (media || videoUrl?.includes("v.redd.it")) {
-      return { platform: "reddit", title: post.title, video_url: media?.fallback_url || videoUrl, thumbnail: post.thumbnail };
+      return {
+        platform: "reddit", title: post.title,
+        video_url: media?.fallback_url || videoUrl, thumbnail: post.thumbnail,
+        music_url: media?.fallback_url ? media.fallback_url.replace(/\.mp4.*/, ".mp3") : null
+      };
     }
     return null;
   } catch { return null; }
@@ -108,21 +121,24 @@ async function downloadOF(url) {
     if (!username) return null;
     const apiUrl = `https://onlyfans.com/api2/v2/users/${username}`;
     const { data } = await axios.get(apiUrl, { headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/json" } });
-    return { platform: "onlyfans", title: data.name || username, author: `@${data.username}`, avatar: data.avatar, posts_count: data.postsCount || 0, photos_count: data.photosCount || 0, videos_count: data.videosCount || 0, note: "Konten OF memerlukan autentikasi untuk download" };
+    return {
+      platform: "onlyfans", title: data.name || username, author: `@${data.username}`,
+      avatar: data.avatar, posts_count: data.postsCount || 0, photos_count: data.photosCount || 0,
+      videos_count: data.videosCount || 0, note: "Konten OF memerlukan autentikasi untuk download"
+    };
   } catch { return null; }
 }
 
 async function downloadYouTube(url) {
   try {
     const info = await ytdl.getInfo(url);
-    const format = ytdl.chooseFormat(info.formats, { quality: "18" }) || ytdl.chooseFormat(info.formats, { quality: "highest" });
+    const videoFormat = ytdl.chooseFormat(info.formats, { quality: "18" }) || ytdl.chooseFormat(info.formats, { quality: "highest" });
+    const audioFormat = ytdl.chooseFormat(info.formats, { quality: "highestaudio", filter: "audioonly" });
     return {
-      platform: "youtube",
-      title: info.videoDetails.title,
-      author: info.videoDetails.author?.name,
+      platform: "youtube", title: info.videoDetails.title, author: info.videoDetails.author?.name,
       duration: info.videoDetails.lengthSeconds,
       thumbnail: info.videoDetails.thumbnails?.[info.videoDetails.thumbnails.length - 1]?.url,
-      video_url: format?.url,
+      video_url: videoFormat?.url, music_url: audioFormat?.url,
       note: "Link download bersifat sementara. Klik download segera."
     };
   } catch { return null; }
