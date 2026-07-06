@@ -178,6 +178,7 @@ app.post("/api/download", async (req, res) => {
   try {
     let result;
     switch (platform) {
+      case "youtube": result = await downloadYouTube(url); break;
       case "tiktok": result = await downloadTikTok(url); break;
       case "instagram": result = await downloadInstagram(url); break;
       case "facebook": result = await downloadFacebook(url); break;
@@ -198,3 +199,21 @@ app.post("/api/download", async (req, res) => {
 
 app.get("/", (req, res) => res.sendFile("public/index.html", { root: "." }));
 export default app;
+
+import ytdl from "@distube/ytdl-core";
+
+async function downloadYouTube(url) {
+  try {
+    const info = await ytdl.getInfo(url);
+    const format = ytdl.chooseFormat(info.formats, { quality: "18" }) || ytdl.chooseFormat(info.formats, { quality: "highest" });
+    return {
+      platform: "youtube",
+      title: info.videoDetails.title,
+      author: info.videoDetails.author?.name,
+      duration: info.videoDetails.lengthSeconds,
+      thumbnail: info.videoDetails.thumbnails?.[info.videoDetails.thumbnails.length - 1]?.url,
+      video_url: format?.url,
+      note: "Link download bersifat sementara (expired). Klik download segera."
+    };
+  } catch { return null; }
+}
