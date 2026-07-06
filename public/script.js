@@ -1,3 +1,17 @@
+window.addEventListener("load", () => {
+    try {
+        const audio = document.getElementById("slashSound");
+        if (audio) {
+            setTimeout(() => { audio.volume = 0.6; audio.play().catch(() => {}); }, 1100);
+        }
+    } catch {}
+
+    setTimeout(() => {
+        document.getElementById("mainApp").style.display = "block";
+        document.getElementById("splash").style.display = "none";
+    }, 3100);
+});
+
 const urlInput = document.getElementById("urlInput");
 const loading = document.getElementById("loading");
 const result = document.getElementById("result");
@@ -32,27 +46,16 @@ async function startDownload() {
 function showResult(data) {
     let html = `<h2>${data.title || "Hasil Download"}</h2>`;
     html += `<div class="result-row"><span class="result-label">Platform</span><span class="result-value">${data.platform.toUpperCase()}</span></div>`;
-
     if (data.author) html += `<div class="result-row"><span class="result-label">Author</span><span class="result-value">${data.author}</span></div>`;
     if (data.music) html += `<div class="result-row"><span class="result-label">Music</span><span class="result-value">${data.music}</span></div>`;
-
-    if (data.video_url) {
-        html += `<div class="result-row"><span class="result-label">Download</span><span class="result-value"><a href="${data.video_url}" target="_blank" download>Klik Download Video</a></span></div>`;
-    }
-    if (data.no_watermark) {
-        html += `<div class="result-row"><span class="result-label">No Watermark</span><span class="result-value"><a href="${data.no_watermark}" target="_blank" download>Klik Download HD</a></span></div>`;
-    }
-    if (data.thumbnail) {
-        html += `<div style="text-align:center;margin-top:14px;"><img src="${data.thumbnail}" alt="Thumbnail" style="max-width:100%;border-radius:10px;"></div>`;
-    }
-    if (data.avatar) {
-        html += `<div style="text-align:center;margin-top:14px;"><img src="${data.avatar}" alt="Avatar" style="width:100px;height:100px;border-radius:50%;object-fit:cover;"></div>`;
-    }
+    if (data.video_url) html += `<div class="result-row"><span class="result-label">Download</span><span class="result-value"><a href="${data.video_url}" target="_blank" download>Klik Download Video</a></span></div>`;
+    if (data.no_watermark) html += `<div class="result-row"><span class="result-label">No Watermark</span><span class="result-value"><a href="${data.no_watermark}" target="_blank" download>Klik Download HD</a></span></div>`;
+    if (data.thumbnail) html += `<div style="text-align:center;margin-top:14px;"><img src="${data.thumbnail}" alt="Thumbnail" style="max-width:100%;border-radius:10px;"></div>`;
+    if (data.avatar) html += `<div style="text-align:center;margin-top:14px;"><img src="${data.avatar}" alt="Avatar" style="width:100px;height:100px;border-radius:50%;object-fit:cover;"></div>`;
     if (data.posts_count !== undefined) html += `<div class="result-row"><span class="result-label">Posts</span><span class="result-value">${data.posts_count}</span></div>`;
     if (data.photos_count !== undefined) html += `<div class="result-row"><span class="result-label">Photos</span><span class="result-value">${data.photos_count}</span></div>`;
     if (data.videos_count !== undefined) html += `<div class="result-row"><span class="result-label">Videos</span><span class="result-value">${data.videos_count}</span></div>`;
     if (data.note) html += `<div class="result-row" style="color:#c0392b;"><span class="result-label">Note</span><span class="result-value">${data.note}</span></div>`;
-
     result.innerHTML = html;
     result.classList.remove("hidden");
 }
