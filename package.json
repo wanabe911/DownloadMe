@@ -6,8 +6,6 @@
   "dependencies": {
     "express": "latest",
     "cors": "latest",
-    "axios": "latest",
-    "ytdl-core": "latest",
-    "@distube/ytdl-core": "latest"
+    "axios": "latest"
   }
 }
