@@ -1,11 +1,10 @@
 {
-  "name": "downloadme",
-  "version": "2.0.0",
+  "name": "downloadme-api",
+  "version": "3.0.0",
   "type": "module",
   "scripts": { "start": "node api/index.js" },
   "dependencies": {
     "express": "latest",
-    "cors": "latest",
-    "axios": "latest"
+    "cors": "latest"
   }
 }

@@ -1,33 +1,38 @@
 import express from "express";
 import cors from "cors";
-import axios from "axios";
+import { execSync } from "child_process";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
 
 function detectPlatform(url) {
   const u = url.toLowerCase();
   if (u.includes("tiktok.com")) return "tiktok";
-  if (u.includes("instagram.com") || u.includes("instagr.am")) return "instagram";
-  if (u.includes("facebook.com") || u.includes("fb.com") || u.includes("fb.watch")) return "facebook";
+  if (u.includes("instagram.com")) return "instagram";
+  if (u.includes("facebook.com") || u.includes("fb.watch")) return "facebook";
   if (u.includes("twitter.com") || u.includes("x.com")) return "twitter";
-  if (u.includes("reddit.com") || u.includes("redd.it")) return "reddit";
   if (u.includes("t.me")) return "telegram";
   if (u.includes("pinterest.com") || u.includes("pin.it")) return "pinterest";
   if (u.includes("youtube.com") || u.includes("youtu.be")) return "youtube";
-  if (u.includes("capcut.com")) return "capcut";
-  if (u.includes("dailymotion.com")) return "dailymotion";
-  if (u.includes("vimeo.com")) return "vimeo";
+  if (u.includes("reddit.com")) return "reddit";
   if (u.includes("onlyfans.com")) return "onlyfans";
   return "unknown";
+}
+
+async function downloadWithYtDlp(url) {
+  try {
+    const videoUrl = execSync(`yt-dlp -f "bestvideo[height<=720]+bestaudio/best[height<=720]" --merge-output-format mp4 -g "${url}"`, { timeout: 30000, encoding: "utf8" }).trim().split("\n").pop();
+    const audioUrl = execSync(`yt-dlp -f "bestaudio[ext=m4a]/bestaudio" -g "${url}"`, { timeout: 30000, encoding: "utf8" }).trim().split("\n").pop();
+    return { video_url: videoUrl, music_url: audioUrl };
+  } catch { return null; }
 }
 
 async function downloadTikTok(url) {
   try {
     const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
-    const { data } = await axios.get(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 10000 });
+    const res = await fetch(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const data = await res.json();
     if (data.code === 0 && data.data) {
       return {
         platform: "tiktok", title: data.data.title, author: data.data.author?.nickname,
@@ -40,106 +45,13 @@ async function downloadTikTok(url) {
   } catch { return null; }
 }
 
-async function downloadInstagram(url) {
-  try {
-    const apiUrl = `https://www.ddinstagram.com${new URL(url).pathname}`;
-    return { platform: "instagram", title: "Instagram Video", video_url: apiUrl, thumbnail: null };
-  } catch { return null; }
-}
-
-async function downloadFacebook(url) {
-  try {
-    const apiUrl = `https://api.fdown.net/api.php?url=${encodeURIComponent(url)}`;
-    const { data } = await axios.get(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 10000 });
-    if (data.success && data.data) {
-      return {
-        platform: "facebook", title: data.data.title || "Facebook Video",
-        video_url: data.data.hd || data.data.sd, thumbnail: data.data.thumbnail,
-        music_url: data.data.audio
-      };
-    }
-    return null;
-  } catch { return null; }
-}
-
 async function downloadTwitter(url) {
   try {
     const apiUrl = `https://twitsave.com/info?url=${encodeURIComponent(url)}`;
-    const { data } = await axios.get(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 10000 });
+    const res = await fetch(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const data = await res.text();
     const match = data.match(/<a[^>]+href="([^"]+)"[^>]+download/);
     if (match) return { platform: "twitter", title: "Twitter/X Video", video_url: match[1], thumbnail: null };
-    return null;
-  } catch { return null; }
-}
-
-async function downloadTelegram(url) {
-  try {
-    const match = url.match(/t\.me\/([^/]+)\/(\d+)/);
-    if (!match) return null;
-    const channel = match[1], messageId = match[2];
-    const { data } = await axios.get(`https://t.me/${channel}/${messageId}?embed=1`, { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 10000 });
-    const videoMatch = data.match(/<video[^>]+src="([^"]+)"/);
-    if (videoMatch) return { platform: "telegram", title: `Video from ${channel}`, video_url: videoMatch[1], thumbnail: null };
-    return null;
-  } catch { return null; }
-}
-
-async function downloadReddit(url) {
-  try {
-    const jsonUrl = url.replace(/\/$/, "") + ".json";
-    const { data } = await axios.get(jsonUrl, { headers: { "User-Agent": "DownloadMe/2.0" }, timeout: 10000 });
-    const post = data[0]?.data?.children[0]?.data;
-    if (!post) return null;
-    const media = post.media?.reddit_video || post.preview?.reddit_video_preview;
-    const videoUrl = post.url_overridden_by_dest || post.url;
-    if (media || videoUrl?.includes("v.redd.it")) {
-      return {
-        platform: "reddit", title: post.title,
-        video_url: media?.fallback_url || videoUrl, thumbnail: post.thumbnail,
-        music_url: media?.fallback_url ? media.fallback_url.replace(/DASH.*/, "DASH_audio.mp4") : null
-      };
-    }
-    return null;
-  } catch { return null; }
-}
-
-async function downloadPinterest(url) {
-  try {
-    const resolved = await axios.get(url, { headers: { "User-Agent": "Mozilla/5.0" }, maxRedirects: 5, timeout: 10000 });
-    const finalUrl = resolved.request?.res?.responseUrl || url;
-    const apiUrl = `https://pinterestdownloader.io/api/fetch-video?url=${encodeURIComponent(finalUrl)}`;
-    const { data } = await axios.get(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 10000 });
-    if (data.video_url) return { platform: "pinterest", title: "Pinterest Video", video_url: data.video_url, thumbnail: data.thumbnail };
-    return null;
-  } catch { return null; }
-}
-
-async function downloadOF(url) {
-  try {
-    const username = url.match(/onlyfans\.com\/([^/?]+)/)?.[1];
-    if (!username) return null;
-    const apiUrl = `https://onlyfans.com/api2/v2/users/${username}`;
-    const { data } = await axios.get(apiUrl, { headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/json" }, timeout: 10000 });
-    return {
-      platform: "onlyfans", title: data.name || username, author: `@${data.username}`,
-      avatar: data.avatar, posts_count: data.postsCount || 0, photos_count: data.photosCount || 0,
-      videos_count: data.videosCount || 0, note: "Konten OF memerlukan autentikasi untuk download"
-    };
-  } catch { return null; }
-}
-
-async function downloadYouTube(url) {
-  try {
-    const apiUrl = `https://api.yt-dl.org/video?url=${encodeURIComponent(url)}`;
-    const { data } = await axios.get(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 15000 });
-    if (data && data.url) {
-      return {
-        platform: "youtube", title: data.title || "YouTube Video",
-        video_url: data.url, thumbnail: data.thumbnail,
-        music_url: data.audio_url || null,
-        note: "Link download bersifat sementara. Klik download segera."
-      };
-    }
     return null;
   } catch { return null; }
 }
@@ -152,18 +64,24 @@ app.post("/api/download", async (req, res) => {
 
   try {
     let result;
-    switch (platform) {
-      case "tiktok": result = await downloadTikTok(url); break;
-      case "instagram": result = await downloadInstagram(url); break;
-      case "facebook": result = await downloadFacebook(url); break;
-      case "twitter": result = await downloadTwitter(url); break;
-      case "telegram": result = await downloadTelegram(url); break;
-      case "reddit": result = await downloadReddit(url); break;
-      case "pinterest": result = await downloadPinterest(url); break;
-      case "youtube": result = await downloadYouTube(url); break;
-      case "onlyfans": result = await downloadOF(url); break;
-      default: result = { platform, video_url: url, note: "Platform didukung." };
+
+    if (platform === "tiktok") {
+      result = await downloadTikTok(url);
+    } else if (platform === "twitter") {
+      result = await downloadTwitter(url);
+    } else {
+      const ytResult = await downloadWithYtDlp(url);
+      if (ytResult) {
+        result = {
+          platform,
+          title: "Video dari " + platform,
+          video_url: ytResult.video_url,
+          music_url: ytResult.music_url,
+          note: "Link download bersifat sementara. Klik segera."
+        };
+      }
     }
+
     if (!result) return res.status(404).json({ error: "Video tidak ditemukan" });
     res.json({ success: true, data: result });
   } catch (err) {
@@ -171,5 +89,5 @@ app.post("/api/download", async (req, res) => {
   }
 });
 
-app.get("/", (req, res) => res.sendFile("public/index.html", { root: "." }));
+app.get("/", (req, res) => res.json({ status: "DownloadMe API", version: "3.0" }));
 export default app;
