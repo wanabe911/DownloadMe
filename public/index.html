@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DownloadMe</title>
+    <title>DownloadMe - Universal Downloader</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 </head>
@@ -12,25 +12,24 @@
     <div class="container">
         <header>
             <h1>Download<span>Me</span></h1>
-            <p>Telegram & OnlyFans Downloader</p>
+            <p>Universal Video Downloader</p>
         </header>
 
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('telegram')">Telegram</button>
-            <button class="tab" onclick="switchTab('onlyfans')">OnlyFans</button>
+        <div class="platforms">
+            <span>TikTok</span><span>IG</span><span>FB</span><span>X</span><span>YT</span><span>Reddit</span><span>Telegram</span><span>Pinterest</span><span>OnlyFans</span>
         </div>
 
         <div class="search-section">
             <div class="input-wrapper">
-                <input type="text" id="urlInput" placeholder="Tempel URL di sini..." autocomplete="off">
+                <input type="text" id="urlInput" placeholder="Tempel URL video di sini..." autocomplete="off">
                 <button id="downloadBtn" onclick="startDownload()">Download</button>
             </div>
-            <p class="hint" id="hintText">Contoh: https://t.me/username/123</p>
+            <p class="hint">Support TikTok, IG, FB, X, YouTube, Reddit, Telegram, Pinterest, OnlyFans, dan lainnya</p>
         </div>
 
         <div id="loading" class="loading hidden">
             <div class="spinner"></div>
-            <p>Memproses...</p>
+            <p>Mendeteksi & memproses...</p>
         </div>
 
         <div id="result" class="result hidden"></div>
