@@ -147,7 +147,7 @@ async function downloadPinterest(url) {
   } catch { return null; }
 }
 
-async function downloadOnlyFans(url) {
+async function downloadOF(url) {
   try {
     const username = url.match(/onlyfans\.com\/([^/?]+)/)?.[1];
     if (!username) return null;
@@ -163,7 +163,7 @@ async function downloadOnlyFans(url) {
       posts_count: data.postsCount || 0,
       photos_count: data.photosCount || 0,
       videos_count: data.videosCount || 0,
-      note: "Konten OnlyFans memerlukan autentikasi untuk download"
+      note: "Konten OF memerlukan autentikasi untuk download"
     };
   } catch { return null; }
 }
@@ -185,7 +185,7 @@ app.post("/api/download", async (req, res) => {
       case "telegram": result = await downloadTelegram(url); break;
       case "reddit": result = await downloadReddit(url); break;
       case "pinterest": result = await downloadPinterest(url); break;
-      case "onlyfans": result = await downloadOnlyFans(url); break;
+      case "onlyfans": result = await downloadOF(url); break;
       default: result = { platform, video_url: url, note: "Platform didukung. Gunakan yt-dlp untuk download penuh." };
     }
 
